@@ -91,13 +91,12 @@ public class ProductController {
 
         return productService.deleteProduct(id)
                 .thenReturn(
-                        ResponseEntity.status(HttpStatus.NO_CONTENT)
-                                .body(
-                                        new ApiResponse<>(
-                                                "Product deleted successfully",
-                                                null
-                                        )
+                        ResponseEntity.ok(
+                                new ApiResponse<>(
+                                        "Product deleted successfully",
+                                        null
                                 )
+                        )
                 );
     }
 
