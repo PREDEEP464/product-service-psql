@@ -20,4 +20,8 @@ public interface ProductService {
     Mono<ProductResponse> activateProduct(Long id);
 
     Mono<ProductResponse> deactivateProduct(Long id);
+
+    Mono<ProductResponse> reserveProduct(Long id, Integer quantity);
+
+    Mono<ProductResponse> releaseProduct(Long id, Integer quantity);
 }

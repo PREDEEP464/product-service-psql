@@ -2,6 +2,8 @@ package com.reactive.product.serviceImpl;
 
 import com.reactive.product.dao.api.ProductRepository;
 import com.reactive.product.exception.ProductNotFoundException;
+import com.reactive.product.exception.InsufficientProductQuantityException;
+import com.reactive.product.exception.ProductOperationException;
 import com.reactive.product.model.entity.Product;
 import com.reactive.product.model.entity.request.ProductRequest;
 import com.reactive.product.model.entity.response.ProductResponse;
@@ -178,6 +180,88 @@ public class ProductServiceImpl implements ProductService {
                         System.out.println("Product deactivated successfully: " + response.getId()))
                 .doOnError(error ->
                         System.err.println("Error while deactivating product: " + error.getMessage()));
+    }
+
+    @Override
+    public Mono<ProductResponse> reserveProduct(
+            Long id,
+            Integer quantity) {
+
+        return productRepository.reserveQuantity(id, quantity)
+                .flatMap(updatedRows -> {
+
+                    if (updatedRows == 0) {
+                        return Mono.error(
+                                new InsufficientProductQuantityException(
+                                        "Product not found, inactive, or insufficient quantity for product id: "
+                                                + id
+                                )
+                        );
+                    }
+
+                    return productRepository.findById(id);
+                })
+                .switchIfEmpty(
+                        Mono.error(
+                                new ProductNotFoundException(
+                                        "Product not found with id: " + id
+                                )
+                        )
+                )
+                .map(this::convertToResponse)
+                .doOnNext(product ->
+                        System.out.println(
+                                "Product quantity reserved: "
+                                        + product.getId()
+                        )
+                )
+                .doOnError(error ->
+                        System.err.println(
+                                "Error while reserving product quantity: "
+                                        + error.getMessage()
+                        )
+                );
+    }
+
+    @Override
+    public Mono<ProductResponse> releaseProduct(
+            Long id,
+            Integer quantity) {
+
+        return productRepository.releaseQuantity(id, quantity)
+                .flatMap(updatedRows -> {
+
+                    if (updatedRows == 0) {
+                        return Mono.error(
+                                new ProductOperationException(
+                                        "Product release failed for product id: "
+                                                + id
+                                )
+                        );
+                    }
+
+                    return productRepository.findById(id);
+                })
+                .switchIfEmpty(
+                        Mono.error(
+                                new ProductNotFoundException(
+                                        "Product not found with id: " + id
+                                )
+                        )
+                )
+                .map(this::convertToResponse)
+                .doOnNext(product ->
+                        System.out.println(
+                                "Product quantity released: "
+                                        + product.getId()
+                        )
+                )
+                .doOnError(error ->
+                        System.err.println(
+                                "Error while releasing product quantity: "
+                                        + error.getMessage()
+                        )
+                );
     }
 
     private ProductResponse convertToResponse(Product product) {

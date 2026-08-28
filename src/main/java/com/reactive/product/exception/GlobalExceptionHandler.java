@@ -69,4 +69,34 @@ public class GlobalExceptionHandler {
                         )
         );
     }
+
+    @ExceptionHandler(InsufficientProductQuantityException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleInsufficientQuantity(
+            InsufficientProductQuantityException exception) {
+
+        return Mono.just(
+                ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(
+                                new ApiResponse<>(
+                                        exception.getMessage(),
+                                        null
+                                )
+                        )
+        );
+    }
+
+    @ExceptionHandler(ProductOperationException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleProductOperation(
+            ProductOperationException exception) {
+
+        return Mono.just(
+                ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(
+                                new ApiResponse<>(
+                                        exception.getMessage(),
+                                        null
+                                )
+                        )
+        );
+    }
 }

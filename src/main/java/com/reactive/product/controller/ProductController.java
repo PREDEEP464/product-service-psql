@@ -129,4 +129,36 @@ public class ProductController {
                         )
                 );
     }
+
+    @PatchMapping("/{id}/reserve/{quantity}")
+    public Mono<ResponseEntity<ApiResponse<ProductResponse>>> reserveProduct(
+            @PathVariable Long id,
+            @PathVariable Integer quantity) {
+
+        return productService.reserveProduct(id, quantity)
+                .map(product ->
+                        ResponseEntity.ok(
+                                new ApiResponse<>(
+                                        "Product quantity reserved successfully",
+                                        product
+                                )
+                        )
+                );
+    }
+
+    @PatchMapping("/{id}/release/{quantity}")
+    public Mono<ResponseEntity<ApiResponse<ProductResponse>>> releaseProduct(
+            @PathVariable Long id,
+            @PathVariable Integer quantity) {
+
+        return productService.releaseProduct(id, quantity)
+                .map(product ->
+                        ResponseEntity.ok(
+                                new ApiResponse<>(
+                                        "Product quantity released successfully",
+                                        product
+                                )
+                        )
+                );
+    }
 }
