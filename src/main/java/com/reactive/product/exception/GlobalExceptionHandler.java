@@ -99,4 +99,19 @@ public class GlobalExceptionHandler {
                         )
         );
     }
+
+    @ExceptionHandler(ProductAlreadyExistsException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleProductAlreadyExists(
+            ProductAlreadyExistsException ex) {
+
+        return Mono.just(
+                ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(
+                                new ApiResponse<>(
+                                        ex.getMessage(),
+                                        null
+                                )
+                        )
+        );
+    }
 }

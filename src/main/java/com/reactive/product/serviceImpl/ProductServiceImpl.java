@@ -3,47 +3,58 @@ package com.reactive.product.serviceImpl;
 import com.reactive.product.dao.api.ProductRepository;
 import com.reactive.product.exception.ProductNotFoundException;
 import com.reactive.product.exception.InsufficientProductQuantityException;
+import com.reactive.product.exception.ProductAlreadyExistsException;
 import com.reactive.product.exception.ProductOperationException;
 import com.reactive.product.model.entity.Product;
 import com.reactive.product.model.entity.request.ProductRequest;
 import com.reactive.product.model.entity.response.ProductResponse;
 import com.reactive.product.service.ProductService;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
+@AllArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-
-    public ProductServiceImpl(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
 
     @Override
     public Mono<ProductResponse> createProduct(ProductRequest request) {
 
         return Mono.defer(() -> {
-
                     validateQuantity(request);
 
-                    Product product = new Product();
-                    product.setName(request.getName());
-                    product.setDescription(request.getDescription());
-                    product.setPrice(request.getPrice());
-                    product.setTotalQuantity(request.getTotalQuantity());
-                    product.setAvailableQuantity(request.getAvailableQuantity());
-                    product.setIsActive(request.getIsActive());
+                    return productRepository
+                            .existsByNameAndIsActiveTrue(request.getName())
+                            .flatMap(exists -> {
 
-                    return productRepository.save(product);
+                                if (exists) {
+                                    return Mono.error(
+                                            new ProductAlreadyExistsException(
+                                                    "Active product already exists with name: "
+                                                            + request.getName()
+                                            )
+                                    );
+                                }
 
+                                Product product = mapToEntity(request, new Product());
+
+                                return productRepository.save(product);
+                            });
                 })
                 .map(this::convertToResponse)
                 .doOnNext(response ->
-                        System.out.println("Product created successfully: " + response.getId()))
+                        System.out.println(
+                                "Product created successfully: " + response.getId()
+                        )
+                )
                 .doOnError(error ->
-                        System.err.println("Error while creating product: " + error.getMessage()));
+                        System.err.println(
+                                "Error while creating product: " + error.getMessage()
+                        )
+                );
     }
 
     @Override
@@ -75,7 +86,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Mono<ProductResponse> updateProduct(Long id, ProductRequest request) {
+    public Mono<ProductResponse> updateProduct(
+            Long id,
+            ProductRequest request) {
 
         return productRepository.findByIdAndIsActiveTrue(id)
                 .switchIfEmpty(
@@ -89,49 +102,21 @@ public class ProductServiceImpl implements ProductService {
 
                     validateQuantity(request);
 
-                    product.setName(request.getName());
-                    product.setDescription(request.getDescription());
-                    product.setPrice(request.getPrice());
-                    product.setTotalQuantity(request.getTotalQuantity());
-                    product.setAvailableQuantity(request.getAvailableQuantity());
-                    product.setIsActive(request.getIsActive());
+                    mapToEntity(request, product);
 
                     return productRepository.save(product);
                 })
                 .map(this::convertToResponse)
                 .doOnNext(response ->
-                        System.out.println("Product updated successfully: " + response.getId()))
-                .doOnError(error ->
-                        System.err.println("Error while updating product: " + error.getMessage()));
-    }
-
-    @Override
-    public Mono<Void> deleteProduct(Long id) {
-
-        return productRepository.findById(id)
-                .switchIfEmpty(
-                        Mono.error(
-                                new ProductNotFoundException(
-                                        "Product not found with id: " + id
-                                )
+                        System.out.println(
+                                "Product updated successfully: " + response.getId()
                         )
                 )
-                .flatMap(product -> {
-                    product.setIsActive(false);
-                    return productRepository.save(product);
-                })
-                .then()
                 .doOnError(error ->
-                        System.err.println("Error while deactivating product: " + error.getMessage()));
-    }
-
-    private void validateQuantity(ProductRequest request) {
-
-        if (request.getAvailableQuantity() > request.getTotalQuantity()) {
-            throw new IllegalArgumentException(
-                    "Available quantity cannot be greater than total quantity"
-            );
-        }
+                        System.err.println(
+                                "Error while updating product: " + error.getMessage()
+                        )
+                );
     }
 
     @Override
@@ -262,6 +247,47 @@ public class ProductServiceImpl implements ProductService {
                                         + error.getMessage()
                         )
                 );
+    }
+
+    @Override
+    public Mono<Void> deleteProduct(Long id) {
+
+        return productRepository.findById(id)
+                .switchIfEmpty(
+                        Mono.error(
+                                new ProductNotFoundException(
+                                        "Product not found with id: " + id
+                                )
+                        )
+                )
+                .flatMap(product -> {
+                    product.setIsActive(false);
+                    return productRepository.save(product);
+                })
+                .then()
+                .doOnError(error ->
+                        System.err.println("Error while deactivating product: " + error.getMessage()));
+    }
+
+    private void validateQuantity(ProductRequest request) {
+
+        if (request.getAvailableQuantity() > request.getTotalQuantity()) {
+            throw new IllegalArgumentException(
+                    "Available quantity cannot be greater than total quantity"
+            );
+        }
+    }
+
+    private Product mapToEntity(ProductRequest request, Product product) {
+
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+        product.setTotalQuantity(request.getTotalQuantity());
+        product.setAvailableQuantity(request.getAvailableQuantity());
+        product.setIsActive(request.getIsActive());
+
+        return product;
     }
 
     private ProductResponse convertToResponse(Product product) {

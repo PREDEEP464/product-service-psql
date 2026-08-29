@@ -15,8 +15,6 @@ public interface ProductService {
 
     Mono<ProductResponse> updateProduct(Long id, ProductRequest request);
 
-    Mono<Void> deleteProduct(Long id);
-
     Mono<ProductResponse> activateProduct(Long id);
 
     Mono<ProductResponse> deactivateProduct(Long id);
@@ -24,4 +22,6 @@ public interface ProductService {
     Mono<ProductResponse> reserveProduct(Long id, Integer quantity);
 
     Mono<ProductResponse> releaseProduct(Long id, Integer quantity);
+
+    Mono<Void> deleteProduct(Long id);
 }

@@ -13,6 +13,8 @@ public interface ProductRepository extends ReactiveCrudRepository<Product, Long>
 
     Flux<Product> findByNameContainingIgnoreCase(String name);
 
+    Mono<Boolean> existsByNameAndIsActiveTrue(String name);
+
     Flux<Product> findByIsActiveTrue();
 
     Mono<Product> findByIdAndIsActiveTrue(Long id);
