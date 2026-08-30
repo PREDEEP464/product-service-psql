@@ -38,4 +38,15 @@ public interface ProductRepository extends ReactiveCrudRepository<Product, Long>
               AND available_quantity + :quantity <= total_quantity
             """)
     Mono<Integer> releaseQuantity(Long id, Integer quantity);
+
+    @Modifying
+    @Query("""
+        UPDATE products
+        SET total_quantity = total_quantity + :quantity,
+            available_quantity = available_quantity + :quantity
+        WHERE id = :id
+          AND is_active = TRUE
+        """)
+    Mono<Integer> addStock(Long id, Integer quantity);
+
 }

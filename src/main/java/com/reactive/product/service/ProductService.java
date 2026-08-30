@@ -1,6 +1,7 @@
 package com.reactive.product.service;
 
 import com.reactive.product.model.entity.request.ProductRequest;
+import com.reactive.product.model.entity.request.StockUpdateRequest;
 import com.reactive.product.model.entity.response.ProductResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -18,6 +19,8 @@ public interface ProductService {
     Mono<ProductResponse> activateProduct(Long id);
 
     Mono<ProductResponse> deactivateProduct(Long id);
+
+    Mono<ProductResponse> addStock(Long id, StockUpdateRequest request);
 
     Mono<ProductResponse> reserveProduct(Long id, Integer quantity);
 

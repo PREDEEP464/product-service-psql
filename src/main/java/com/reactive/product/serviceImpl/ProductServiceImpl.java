@@ -7,15 +7,16 @@ import com.reactive.product.exception.ProductAlreadyExistsException;
 import com.reactive.product.exception.ProductOperationException;
 import com.reactive.product.model.entity.Product;
 import com.reactive.product.model.entity.request.ProductRequest;
+import com.reactive.product.model.entity.request.StockUpdateRequest;
 import com.reactive.product.model.entity.response.ProductResponse;
 import com.reactive.product.service.ProductService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
@@ -248,6 +249,51 @@ public class ProductServiceImpl implements ProductService {
                         )
                 );
     }
+
+    @Override
+    public Mono<ProductResponse> addStock(
+            Long id,
+            StockUpdateRequest request) {
+
+        return productRepository
+                .addStock(id, request.getQuantity())
+                .flatMap(updatedRows -> {
+
+                    if (updatedRows == 0) {
+                        return Mono.error(
+                                new ProductNotFoundException(
+                                        "Active product not found with id: " + id
+                                )
+                        );
+                    }
+
+                    return productRepository.findById(id);
+                })
+                .switchIfEmpty(
+                        Mono.error(
+                                new ProductNotFoundException(
+                                        "Product not found with id: " + id
+                                )
+                        )
+                )
+                .map(this::convertToResponse)
+                .doOnNext(response ->
+                        System.out.println(
+                                "Stock added successfully: "
+                                        + request.getQuantity()
+                                        + " for product: "
+                                        + response.getId()
+                        )
+                )
+                .doOnError(error ->
+                        System.err.println(
+                                "Error while adding stock: "
+                                        + error.getMessage()
+                        )
+                );
+    }
+
+
 
     @Override
     public Mono<Void> deleteProduct(Long id) {

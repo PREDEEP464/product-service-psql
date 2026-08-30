@@ -1,10 +1,12 @@
 package com.reactive.product.controller;
 
 import com.reactive.product.model.entity.request.ProductRequest;
+import com.reactive.product.model.entity.request.StockUpdateRequest;
 import com.reactive.product.model.entity.response.ApiResponse;
 import com.reactive.product.model.entity.response.ProductResponse;
 import com.reactive.product.service.ProductService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,13 +16,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
+@RequiredArgsConstructor
 public class ProductController {
 
     private final ProductService productService;
-
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
 
     @PostMapping
     public Mono<ResponseEntity<ApiResponse<ProductResponse>>> createProduct(
@@ -128,6 +127,15 @@ public class ProductController {
                         )
                 );
     }
+
+    @PatchMapping("/{id}/stock")
+    public Mono<ProductResponse> addStock(
+            @PathVariable Long id,
+            @Valid @RequestBody StockUpdateRequest request) {
+
+        return productService.addStock(id, request);
+    }
+
 
     @PatchMapping("/{id}/reserve/{quantity}")
     public Mono<ResponseEntity<ApiResponse<ProductResponse>>> reserveProduct(
