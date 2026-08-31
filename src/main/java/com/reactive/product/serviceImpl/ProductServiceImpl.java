@@ -60,12 +60,20 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Flux<ProductResponse> getAllProducts() {
+
         return productRepository.findByIsActiveTrue()
                 .map(this::convertToResponse)
                 .doOnNext(product ->
-                        System.out.println("Product fetched: " + product.getId()))
+                        System.out.println(
+                                "Product fetched: " + product.getId()
+                        )
+                )
                 .doOnError(error ->
-                        System.err.println("Error while fetching products: " + error.getMessage()));
+                        System.err.println(
+                                "Error while fetching products: "
+                                        + error.getMessage()
+                        )
+                );
     }
 
     @Override
@@ -81,9 +89,21 @@ public class ProductServiceImpl implements ProductService {
                 )
                 .map(this::convertToResponse)
                 .doOnNext(response ->
-                        System.out.println("Product found: " + response.getId()))
+                        System.out.println(
+                                "Product found: " + response.getId()
+                        )
+                )
+                .doOnSuccess(response ->
+                        System.out.println(
+                                "Get product operation completed for ID: " + id
+                        )
+                )
                 .doOnError(error ->
-                        System.err.println("Error while fetching product: " + error.getMessage()));
+                        System.err.println(
+                                "Error while fetching product: "
+                                        + error.getMessage()
+                        )
+                );
     }
 
     @Override
@@ -312,7 +332,19 @@ public class ProductServiceImpl implements ProductService {
                 })
                 .then()
                 .doOnError(error ->
-                        System.err.println("Error while deactivating product: " + error.getMessage()));
+                        System.err.println(
+                                "Error while deactivating product: "
+                                        + error.getMessage()
+                        )
+                )
+                .doFinally(signal ->
+                        System.out.println(
+                                "Delete product operation finished for ID: "
+                                        + id
+                                        + " with signal: "
+                                        + signal
+                        )
+                );
     }
 
     private void validateQuantity(ProductRequest request) {
