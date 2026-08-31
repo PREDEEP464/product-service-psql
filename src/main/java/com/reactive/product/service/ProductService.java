@@ -5,6 +5,7 @@ import com.reactive.product.model.entity.request.StockUpdateRequest;
 import com.reactive.product.model.entity.response.ProductResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import java.util.List;
 
 public interface ProductService {
 
@@ -26,5 +27,5 @@ public interface ProductService {
 
     Mono<ProductResponse> releaseProduct(Long id, Integer quantity);
 
-    Mono<Void> deleteProduct(Long id);
+    Flux<Void> deleteProducts(List<Long> ids);
 }

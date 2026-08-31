@@ -83,16 +83,18 @@ public class ProductController {
                 );
     }
 
-    @DeleteMapping("/{id}")
-    public Mono<ResponseEntity<ApiResponse<Void>>> deleteProduct(
-            @PathVariable Long id) {
+    @DeleteMapping
+    public Mono<ResponseEntity<ApiResponse<Void>>> deleteProducts(
+            @RequestBody List<Long> ids) {
 
-        return productService.deleteProduct(id)
-                .thenReturn(
-                        ResponseEntity.ok(
-                                new ApiResponse<>(
-                                        "Product deleted successfully",
-                                        null
+        return productService.deleteProducts(ids)
+                .then(
+                        Mono.just(
+                                ResponseEntity.ok(
+                                        new ApiResponse<>(
+                                                "Products deleted successfully",
+                                                null
+                                        )
                                 )
                         )
                 );

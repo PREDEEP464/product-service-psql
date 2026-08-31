@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -316,32 +317,36 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    public Mono<Void> deleteProduct(Long id) {
+    public Flux<Void> deleteProducts(List<Long> ids) {
 
-        return productRepository.findById(id)
-                .switchIfEmpty(
-                        Mono.error(
-                                new ProductNotFoundException(
-                                        "Product not found with id: " + id
+        return Flux.fromIterable(ids)
+                .concatMap(id ->
+                        productRepository.findById(id)
+                                .switchIfEmpty(
+                                        Mono.error(
+                                                new ProductNotFoundException(
+                                                        "Product not found with id: " + id
+                                                )
+                                        )
                                 )
-                        )
+                                .flatMap(product -> {
+                                    product.setIsActive(false);
+                                    return productRepository.save(product);
+                                })
+                                .then()
                 )
-                .flatMap(product -> {
-                    product.setIsActive(false);
-                    return productRepository.save(product);
-                })
-                .then()
+                .doOnNext(result ->
+                        System.out.println("Product deleted successfully")
+                )
                 .doOnError(error ->
                         System.err.println(
-                                "Error while deactivating product: "
+                                "Error while deleting products: "
                                         + error.getMessage()
                         )
                 )
                 .doFinally(signal ->
                         System.out.println(
-                                "Delete product operation finished for ID: "
-                                        + id
-                                        + " with signal: "
+                                "Delete products operation finished with signal: "
                                         + signal
                         )
                 );
