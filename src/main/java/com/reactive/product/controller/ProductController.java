@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -169,5 +170,17 @@ public class ProductController {
                                 )
                         )
                 );
+    }
+
+    @GetMapping("/merge-demo")
+    public Flux<String> getProductMergeDemo() {
+
+        return productService.getProductMergeDemo();
+    }
+
+    @GetMapping("/concat-demo")
+    public Flux<String> getProductConcatDemo() {
+
+        return productService.getProductConcatDemo();
     }
 }

@@ -28,4 +28,8 @@ public interface ProductService {
     Mono<ProductResponse> releaseProduct(Long id, Integer quantity);
 
     Flux<Void> deleteProducts(List<Long> ids);
+
+    Flux<String> getProductMergeDemo();
+
+    Flux<String> getProductConcatDemo();
 }

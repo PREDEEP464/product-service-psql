@@ -385,4 +385,46 @@ public class ProductServiceImpl implements ProductService {
                 product.getIsActive()
         );
     }
+
+    @Override
+    public Flux<String> getProductMergeDemo() {
+
+        Flux<String> products = productRepository.findByIsActiveTrue()
+                .map(product ->
+                        "Product: " + product.getName()
+                );
+
+        Flux<String> messages = Flux.just(
+                "Product stream started",
+                "Product stream completed"
+        );
+
+        return Flux.merge(products, messages)
+                .doOnNext(message ->
+                        System.out.println(
+                                "Merged stream: " + message
+                        )
+                );
+    }
+
+    @Override
+    public Flux<String> getProductConcatDemo() {
+
+        Flux<String> products = productRepository.findByIsActiveTrue()
+                .map(product ->
+                        "Product: " + product.getName()
+                );
+
+        Flux<String> messages = Flux.just(
+                "Product stream started",
+                "Product stream completed"
+        );
+
+        return Flux.concat(products, messages)
+                .doOnNext(message ->
+                        System.out.println(
+                                "Concatenated stream: " + message
+                        )
+                );
+    }
 }
